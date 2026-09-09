@@ -369,6 +369,34 @@ mod inbox_tests {
     }
 
     #[test]
+    fn inbox_status_treats_missing_read_state_as_unread() {
+        let env = inbox_temp_env("status-mixed-read-state");
+        inbox_write_fixture(
+            &env,
+            "2026-06-25_00-00_alice_unread.md",
+            "alice",
+            false,
+            "unread message",
+        );
+        inbox_write_fixture(
+            &env,
+            "2026-06-25_00-01_alice_read.md",
+            "alice",
+            true,
+            "read message",
+        );
+        std::fs::write(
+            env.inbox_dir.join("2026-06-25_00-02_alice_legacy.md"),
+            "---\nfrom: alice\nto: nova\ntimestamp: 2026-06-25T00:02:00.000Z\n---\n\nlegacy message\n",
+        )
+        .unwrap();
+
+        let status = inbox_build_status("nova", &env.inbox_dir, &env, INBOX_TEST_NOW_MS).unwrap();
+
+        assert_eq!(status.unread, 2);
+    }
+
+    #[test]
     fn inbox_pending_acl_surfaces_match_committed_goldens() {
         let env = inbox_temp_env("pending-golden");
         inbox_pending_fixture(&env, "abc123", "pending");
