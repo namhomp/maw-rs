@@ -11,6 +11,29 @@
         .join("\n");
         assert_eq!(pane_pending_input_from_capture(&idle_empty), None);
 
+        // Athena's idle Codex v0.153.4 capture: the composer always renders
+        // this placeholder, and the model/status row is the last visible row.
+        let idle_placeholder = [
+            "────────────────────────────────────────────────────────────────────────────────",
+            "",
+            "",
+            "› Ask Codex to do anything",
+            "",
+            "  gpt-5.6-sol low fast · ~/repos/nh/oracles/luffy",
+        ]
+        .join("\n");
+        assert_eq!(pane_pending_input_from_capture(&idle_placeholder), None);
+        assert!(!pane_input_pending_from_capture(&idle_placeholder));
+
+        let typed_draft = idle_placeholder.replace(
+            "› Ask Codex to do anything",
+            "› Explain this codebase",
+        );
+        assert_eq!(
+            pane_pending_input_from_capture(&typed_draft),
+            Some("Explain this codebase".to_owned())
+        );
+
         let pending = [
             "─ Worked for 20m 43s ─────────────────────────",
             "",
